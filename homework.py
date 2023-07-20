@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import time
+from http import HTTPStatus
 
 import requests
 import telegram
@@ -38,11 +39,7 @@ def check_tokens():
     Если отсутствует хотя бы одна переменная окружения —
     продолжать работу бота нет смысла
     """
-    tokens = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
-    for token in tokens:
-        if token is None:
-            logger.critical('Отсутствует один из обязательных токенов.')
-            sys.exit()
+    return all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID])
 
 
 def send_message(bot, message):
@@ -69,7 +66,7 @@ def get_api_answer(timestamp):
         homework_statuses = requests.get(ENDPOINT,
                                          headers=HEADERS,
                                          params=payload)
-        if homework_statuses.status_code == 200:
+        if homework_statuses.status_code == HTTPStatus.OK:
             return homework_statuses.json()
         else:
             raise requests.exceptions.RequestException()
@@ -105,7 +102,9 @@ def parse_status(homework):
     """
     status = homework.get('status')
     homework_name = homework.get('homework_name')
-    if status in HOMEWORK_VERDICTS:
+    if status not in HOMEWORK_VERDICTS:
+        raise KeyError('статус работы отличается от возможных')
+    else:
         verdict = HOMEWORK_VERDICTS[status]
     if 'homework_name' not in homework:
         raise KeyError('отсутствует ключ homework_name')
@@ -114,22 +113,26 @@ def parse_status(homework):
 
 def main():
     """Основная логика работы бота."""
-    check_tokens()
+    if check_tokens() is False:
+        logger.critical('Отсутствует один из обязательных токенов.')
+        sys.exit()
+
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
+    last_message = ''
+
     while True:
         try:
             response = get_api_answer(timestamp)
             timestamp = response.get('current_date')
             check_response(response)
-
             homework = response.get('homeworks')[0]
-            if homework:
-                message = parse_status(homework)
+
+            message = parse_status(homework)
+            if last_message != message:
                 send_message(bot, message)
-                timestamp = response.get('current_date')
-            else:
-                send_message(bot, 'Status of homework not updated')
+                last_message = message
+
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
         finally:
