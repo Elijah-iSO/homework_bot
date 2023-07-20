@@ -29,7 +29,7 @@ logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler(stream=sys.stdout)
 logger.addHandler(handler)
 formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    '%(asctime)s - %(levelname)s - %(message)s - %(funcName)s - %(lineno)s'
 )
 handler.setFormatter(formatter)
 
