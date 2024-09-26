@@ -16,15 +16,21 @@ Telegram-бота, который будет обращаться к API сер�
    git clone git@github.com:Elijah-iSO/homework_bot.git
    cd homework_bot
    ```
+2. **Создание и активация окружения:**
 
-2. **Обновление pip и установка зависимостей:**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+   
+3. **Обновление pip и установка зависимостей:**
 
    ```bash
    pip install --upgrade pip
    pip install -r requirements.txt
    ```
 
-3. **Создайте файл `.env`:**
+4. **Создайте файл `.env`:**
 
    ```bash
    touch .env
@@ -38,7 +44,7 @@ Telegram-бота, который будет обращаться к API сер�
    TELEGRAM_CHAT_ID=<ВАШ_ID_ЧАТА_ТЕЛЕГРАМ>
    ```
 
-4. **Запустите проект:**
+5. **Запустите проект:**
 
    ```bash
    python3 main.py
